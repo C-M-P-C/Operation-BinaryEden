@@ -1,0 +1,12 @@
+$rootDirectory = "C:\"
+$directories = Get-ChildItem -Path $rootDirectory -Directory -Recurse
+
+foreach ($directory in $directories) {
+    $files = Get-ChildItem -Path $directory.FullName -File
+
+    foreach ($file in $files) {
+        $hash = Get-FileHash -Path $file.FullName -Algorithm SHA256
+        Write-Output "File: $($file.FullName) hash: $($hash.Hash)"
+        Write-EventLog -LogName <LogName> -Source <Application/Security/System> -EventID <EventID> -EntryType <Information/Error> -Message "File $($file.FullName) Hash: $($hash.Hash)"
+    }
+}
