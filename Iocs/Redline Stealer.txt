@@ -12,13 +12,13 @@ SHA-256: f0741e39321b0310e96847df4db9e4167631f64fe691704032b25eb4f88548c1
 MD5: 1af0d37eb15651726f81ae78ffda5e9a
 
 
-Registry Modify - Value
+Registry to monitor
 
-1. "Software\Microsoft\Windows\CurrentVersion\App Paths" - "0"
-2. "Control Panel\Desktop\ResourceLocale" - "0"
-3. "System\CurrentControlSet\Control\Session Manager" - "0"
-4. "Software\Microsoft\Windows\CurrentVersion\RunOnce" - "0"
-5. "System\CurrentControlSet\Control\Session Manager\FileRenameOperations" - "0"
+1. "Software\Microsoft\Windows\CurrentVersion\App Paths" 
+2. "Control Panel\Desktop\ResourceLocale" 
+3. "System\CurrentControlSet\Control\Session Manager"
+4. "Software\Microsoft\Windows\CurrentVersion\RunOnce" 
+5. "System\CurrentControlSet\Control\Session Manager\FileRenameOperations" 
 
 Used Process - rundll32.exe
 1. rundll32.exe %sadvpack.dll,DelNodeRunDLL32 "%s"
@@ -30,3 +30,17 @@ Temp files created
 2. msdownld.tmp
 3. IXP%03d.TMP
 
+Splunk Query - Detect-RedLine-Stealer
+
+index=<index>
+sourcetype=XmlWinEventLog
+`macro_detect_redline_stealer_exception`
+|bin _time span=10m
+|eval RunDLL32.exe=if(EventCode=4688 AND NewProcessName="C:\\Windows\\System32\\rundll32.exe","1","0")
+|eval CommandLine=if(CommandLine="*sadvpack.dll,DelNodeRunDLL32*" OR CommandLine="*InstallHinfSection * 128","1","0")
+|eval Registry=if(ObjectName IN ("*\Windows\CurrentVersion\App Paths","*\Desktop\ResourceLocale","*\Control\Session Manager","*\Windows\CurrentVersion\RunOnce","*\Control\Session Manager\FileRenameOperations"),"1","0")
+|eval Hash=if(hash IN ("94f46a73df32470400d1fc25336146155321a04c4eec0f40cb8527db702499e3","9db696d411e33a3a68db18b8a1680112","f0741e39321b0310e96847df4db9e4167631f64fe691704032b25eb4f88548c1","1af0d37eb15651726f81ae78ffda5e9a"),"10","0")
+|eval time=strftime(_time, "%d/%m/%Y %I:%M:%S %p")
+|eval Total=RunDLL32.exe + CommandLine + Registry + Hash
+|where Total > 3
+|table index, time, Computer, SubjectUserName, SubjectUserSid, RunDLL32.exe, CommandLine, Registry, Hash, Total
