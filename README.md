@@ -1,4 +1,10 @@
+
 # Operation Binary Eden
+
+<div align="center">
+  <img src="https://github.com/C-M-P-C/Operation-BinaryEden/blob/main/Binary.PNG" alt="Operation Binary Eden Logo">
+</div>
+
 
 ## Description
 
